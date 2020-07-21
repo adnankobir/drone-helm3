@@ -35,6 +35,12 @@ func WithInstallUpgradeMode() HelmModeOption {
 	}
 }
 
+func WithRollbackMode() HelmModeOption {
+	return func(c *HelmCmd) {
+		c.Args = append([]string{"rollback"}, c.Args...)
+	}
+}
+
 func WithRelease(release string) HelmOption {
 	return func(c *HelmCmd) error {
 		c.Release = release
@@ -262,14 +268,20 @@ func NewHelmCmd(mode HelmModeOption, options ...HelmOption) (*HelmCmd, error) {
 			return nil, fmt.Errorf("unable to parse option: %s", err)
 		}
 	}
+	helmUpgradeMode := contains(h.Args, "upgrade")
 	if h.Release == "" {
 		return nil, fmt.Errorf("release name is required")
 	}
-	if h.Chart == "" {
+	if h.Chart == "" && helmUpgradeMode {
 		return nil, fmt.Errorf("chart path is required")
 	}
 	if h.Runner == nil {
 		return nil, fmt.Errorf("runner is required")
+	}
+	if !helmUpgradeMode {
+		// rollback mode does not require Chart
+		h.Args = append(h.Args, h.Release)
+		return h, nil
 	}
 	h.Args = append(h.Args, h.Release, h.Chart)
 	return h, nil
@@ -309,4 +321,13 @@ func (h *HelmCmd) Run(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func contains(arr []string, str string) bool {
+    for _, a := range arr {
+        if a == str {
+            return true
+        }
+    }
+    return false
 }

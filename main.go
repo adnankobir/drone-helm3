@@ -127,6 +127,8 @@ func main() {
 	switch cfg.Mode {
 	case "installupgrade":
 		modeOption = helm.WithInstallUpgradeMode()
+	case "rollback":
+		modeOption = helm.WithRollbackMode()
 	default:
 		log.Fatalf("mode %q is not known", cfg.Mode)
 	}
@@ -141,7 +143,6 @@ func main() {
 		cfg.Test = true
 	}
 
-	// create helm cmd
 	cmd, err := helm.NewHelmCmd(
 		modeOption,
 		helm.WithChart(cfg.Chart),
@@ -171,6 +172,20 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("unable to generate helm command: %s", err)
+	}
+	// create helm cmd based on rollback
+	if cfg.Mode == "rollback" {
+		cmd, err = helm.NewHelmCmd(
+			modeOption,
+			helm.WithRelease(cfg.Release),
+			helm.WithNamespace(cfg.Namespace),
+	
+			helm.WithKubeConfig(cfg.KubeConfig),
+			helm.WithRunner(NewRunner()),
+		)
+		if err != nil {
+			log.Fatalf("unable to generate helm command: %s", err)
+		}
 	}
 
 	// run commands
