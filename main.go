@@ -28,7 +28,7 @@ type (
 		KubeSkipTLS     bool   `envconfig:"KUBE_SKIP_TLS" default:"false"`            // disable kubernetes tls verify
 
 		Mode      string `envconfig:"MODE" default:"installupgrade"` // changes helm operation mode
-		Chart     string `envconfig:"CHART" required:"true"`         // the helm chart to be deployed
+		Chart     string `envconfig:"CHART" default:""`              // the helm chart to be deployed
 		Release   string `envconfig:"RELEASE" required:"true"`       // helm release name
 		Namespace string `envconfig:"NAMESPACE" required:"true"`     // kubernets and helm namespace
 
